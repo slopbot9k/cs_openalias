@@ -1,0 +1,14 @@
+name: cs_openalias
+description: OpenAlias address resolution composed with on-device DNSSEC validation and configurable DNS over HTTPS transport.
+version: 0.0.1
+homepage: https://cypherstack.com/
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+dependencies:
+  openalias: ^0.0.1
+  dnssec_resolver: ^0.0.1
+  doh_transport: ^0.0.1
+dev_dependencies:
+  lints: ^6.0.0
+  pointycastle: ^4.0.0
+  test: ^1.25.0

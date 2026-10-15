@@ -1,0 +1,9 @@
+.git/
+.dart_tool/
+.github/
+build/
+pubspec.lock
+pubspec_overrides.yaml
+test/
+tool/
+*.log
