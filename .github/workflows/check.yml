@@ -1,0 +1,54 @@
+name: OpenAlias integration checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        sdk: [stable]
+        include:
+          - os: ubuntu-latest
+            sdk: '3.10.0'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          path: cs_openalias
+      # The core packages remain unpublished; test exact reviewed revisions.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: cypherstack/openalias
+          ref: 009ef580f6493198d555d2e3b8022f25124c9df0
+          path: openalias
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: cypherstack/dnssec_resolver
+          ref: e6d204a781a509cc0d7f44aacf76eb5e93e23074
+          path: dnssec_resolver
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          repository: cypherstack/doh_transport
+          ref: 42abf37b025d7be6d60484da6b5e0d95f884ce4a
+          path: doh_transport
+      - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
+        with:
+          sdk: ${{ matrix.sdk }}
+      - shell: bash
+        run: rustup toolchain install 1.90.0 --profile minimal --component clippy --component rustfmt
+      - shell: bash
+        working-directory: cs_openalias
+        run: |
+          cat > pubspec_overrides.yaml <<'YAML'
+          dependency_overrides:
+            openalias:
+              path: ../openalias
+            dnssec_resolver:
+              path: ../dnssec_resolver
+            doh_transport:
+              path: ../doh_transport
+          YAML
+      - run: dart tool/check.dart
+        working-directory: cs_openalias
