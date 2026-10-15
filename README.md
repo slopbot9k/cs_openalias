@@ -49,8 +49,29 @@ exception types do not cross the boundary.
 
 ## Development
 
-Run `dart tool/check.dart`. Integration fixtures copied from
-`dnssec_resolver/test/support` retain their adjacent license notice.
+Use Dart 3.10 or later and rustup with Rust 1.90.0. The DNSSEC build hook
+also needs the Rust target for the platform you are building for.
+
+The core packages are not published yet. Clone `openalias`, `dnssec_resolver`,
+and `doh_transport` beside this repository, then add an untracked
+`pubspec_overrides.yaml`:
+
+```yaml
+dependency_overrides:
+  openalias:
+    path: ../openalias
+  dnssec_resolver:
+    path: ../dnssec_resolver
+  doh_transport:
+    path: ../doh_transport
+```
+
+Run `dart tool/check.dart` from the repository root. It resolves dependencies,
+checks formatting and analysis, runs the tests, and performs a publish dry run;
+it does not publish. Opt-in live tests run with
+`OPENALIAS_LIVE_TESTS=1 dart test test/live_test.dart`.
+
+Integration fixtures retain their adjacent license notice.
 
 ## License
 
