@@ -42,6 +42,10 @@ its TLS verification, numeric-destination, proxy, redirect, deadline,
 connection-reuse, and no-fallback guarantees; the facade cannot restore
 guarantees bypassed by injected networking. DNSSEC still independently checks
 HTTP status, body bounds, wire framing/question identity, and response Age.
+The facade calls `DnssecResult.secureTxt()` before constructing the trusted
+OpenAlias TXT answer. Insecure, bogus, indeterminate, malformed, and
+unavailable validation therefore fail as typed facade errors before OpenAlias
+parsing; no validator token is treated as independent proof.
 
 The public API exposes only facade-owned operations, results, configuration,
 network-test seams, and a sealed exception family. Lower-package result and

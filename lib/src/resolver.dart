@@ -125,13 +125,11 @@ final class CsOpenAliasResolver {
                 for (final record in secureTxt)
                   List<int>.unmodifiable(record.bytes),
               ],
-              validator: DnssecResolver.validator,
             );
             final recipient = await oa.OpenAliasResolver(
               resolver: _FixedTxtResolver(answer),
               application: application,
               validateAddress: validateAddress,
-              trustedValidators: [DnssecResolver.validator],
             ).resolve(domain);
             if (!permission.check()) throw _privacyRevoked();
             return CsOpenAliasRecipient(
@@ -384,12 +382,6 @@ CsOpenAliasException _mapOpenAlias(
   ),
   oa.OpenAliasQuestionMismatchException() =>
     CsOpenAliasQuestionMismatchException(
-      error.message,
-      cause: error,
-      causeStackTrace: stack,
-    ),
-  oa.OpenAliasAuthenticationUnavailableException() =>
-    CsOpenAliasAuthenticationException(
       error.message,
       cause: error,
       causeStackTrace: stack,

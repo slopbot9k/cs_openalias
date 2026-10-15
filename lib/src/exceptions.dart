@@ -14,7 +14,6 @@ enum CsOpenAliasError {
   dnsAliasLoop,
   dnsQueryFailed,
   questionMismatch,
-  authenticationUnavailable,
   privacyRevoked,
   responseTooLarge,
   malformedResponse,
@@ -188,14 +187,6 @@ final class CsOpenAliasQuestionMismatchException extends CsOpenAliasException {
     super.cause,
     super.causeStackTrace,
   }) : super(CsOpenAliasError.questionMismatch, message);
-}
-
-final class CsOpenAliasAuthenticationException extends CsOpenAliasException {
-  const CsOpenAliasAuthenticationException(
-    String message, {
-    super.cause,
-    super.causeStackTrace,
-  }) : super(CsOpenAliasError.authenticationUnavailable, message);
 }
 
 final class CsOpenAliasPrivacyException extends CsOpenAliasException {

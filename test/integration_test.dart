@@ -297,25 +297,29 @@ void main() {
     });
   }
 
-  test('native DNSSEC failure maps to a facade-owned typed status', () async {
-    final factory = FixtureNetworkFactory(fixtures);
-    await expectLater(
-      resolver(factory).resolve('alice.bad-ds.test'),
-      throwsA(
-        isA<CsOpenAliasDnssecException>()
-            .having(
-              (error) => error.status,
-              'status',
-              CsOpenAliasDnssecStatus.bogus,
-            )
-            .having(
-              (error) => error.toString(),
-              'toString',
-              contains('status: bogus'),
-            ),
-      ),
+  for (final (domain, status) in [
+    ('unsigned.test', CsOpenAliasDnssecStatus.insecure),
+    ('alice.bad-ds.test', CsOpenAliasDnssecStatus.bogus),
+  ]) {
+    test(
+      'native DNSSEC ${status.name} maps to a facade-owned typed status',
+      () async {
+        final factory = FixtureNetworkFactory(fixtures);
+        await expectLater(
+          resolver(factory).resolve(domain),
+          throwsA(
+            isA<CsOpenAliasDnssecException>()
+                .having((error) => error.status, 'status', status)
+                .having(
+                  (error) => error.toString(),
+                  'toString',
+                  contains('status: ${status.name}'),
+                ),
+          ),
+        );
+      },
     );
-  });
+  }
 
   test(
     'native validator loads before dispatching through the facade port',

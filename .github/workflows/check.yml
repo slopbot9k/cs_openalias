@@ -21,12 +21,12 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: cypherstack/openalias
-          ref: 009ef580f6493198d555d2e3b8022f25124c9df0
+          ref: 5581fce3ad0103ae756fecb7e79aae58cb42ac12
           path: openalias
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: cypherstack/dnssec_resolver
-          ref: e6d204a781a509cc0d7f44aacf76eb5e93e23074
+          ref: 52693281a7fccc9a55cfa4f77dd58cde31cdf8b2
           path: dnssec_resolver
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
