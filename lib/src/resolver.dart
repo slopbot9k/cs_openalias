@@ -19,6 +19,7 @@ String normalizeOpenAlias(String input) {
   } on oa.OpenAliasException catch (error, stack) {
     throw CsOpenAliasInvalidAliasException(
       error.message,
+      alias: input,
       cause: error,
       causeStackTrace: stack,
     );
@@ -115,11 +116,11 @@ CsOpenAliasOperation<CsOpenAliasRecipient> startOpenAliasLookup(
         try {
           finish(_recipient(domain, answer, isValidAddress));
         } catch (error, stack) {
-          finish(mapLookupFailure(error, stack), stack);
+          finish(mapLookupFailure(error, stack, domain), stack);
         }
       },
       onError: (Object error, StackTrace stack) =>
-          finish(mapLookupFailure(error, stack), stack),
+          finish(mapLookupFailure(error, stack, domain), stack),
     ),
   );
 
@@ -128,7 +129,12 @@ CsOpenAliasOperation<CsOpenAliasRecipient> startOpenAliasLookup(
     try {
       dns.cancel();
     } catch (_) {}
-    finish(const CsOpenAliasCancelledException('OpenAlias lookup cancelled'));
+    finish(
+      CsOpenAliasCancelledException(
+        'OpenAlias lookup cancelled',
+        alias: domain,
+      ),
+    );
   });
 }
 
@@ -151,13 +157,19 @@ CsOpenAliasRecipient _recipient(
   bool Function(String address) isValidAddress,
 ) {
   if (answer.question != domain || answer.recordType != 16) {
-    throw const CsOpenAliasDnsException('DNS answer is not for the alias');
+    throw CsOpenAliasDnsException(
+      'DNS answer is not for the alias',
+      alias: domain,
+    );
   }
   final txt = answer.secureTxt();
   final records = <String>[];
   for (final record in txt) {
     if (record.name != answer.canonicalName) {
-      throw const CsOpenAliasDnsException('TXT owner is not the alias');
+      throw CsOpenAliasDnsException(
+        'TXT owner is not the alias',
+        alias: domain,
+      );
     }
     if (!_isXmrRecord(record.bytes)) continue;
     try {
@@ -165,6 +177,7 @@ CsOpenAliasRecipient _recipient(
     } on FormatException catch (error, stack) {
       throw CsOpenAliasInvalidRecordException(
         'OpenAlias record is not UTF-8',
+        alias: domain,
         cause: error,
         causeStackTrace: stack,
       );
@@ -193,36 +206,42 @@ CsOpenAliasRecipient _recipient(
 
 /// The facade leaf for a constituent failure, or [error] itself when it is
 /// not one (a programmer error).
-Object mapLookupFailure(Object error, StackTrace stack) => switch (error) {
-  CsOpenAliasException() => error,
-  oa.OpenAliasException() => _fromOpenAlias(error, stack),
-  DnssecTransportException(:final DohTransportException cause) => _fromDoh(
-    cause,
-    error.causeStackTrace ?? stack,
-  ),
-  DnssecException() => _fromDnssec(error, stack),
-  DohTransportException() => _fromDoh(error, stack),
-  _ => error,
-};
+Object mapLookupFailure(Object error, StackTrace stack, String alias) =>
+    switch (error) {
+      CsOpenAliasException() => error,
+      oa.OpenAliasException() => _fromOpenAlias(error, stack, alias),
+      DnssecTransportException(:final DohTransportException cause) => _fromDoh(
+        cause,
+        error.causeStackTrace ?? stack,
+        alias,
+      ),
+      DnssecException() => _fromDnssec(error, stack, alias),
+      DohTransportException() => _fromDoh(error, stack, alias),
+      _ => error,
+    };
 
 CsOpenAliasException _fromOpenAlias(
   oa.OpenAliasException error,
   StackTrace stack,
+  String alias,
 ) {
   final message = error.message;
   return switch (error) {
     oa.OpenAliasInvalidNameException() => CsOpenAliasInvalidAliasException(
       message,
+      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),
     oa.OpenAliasNoRecordException() => CsOpenAliasNoRecordException(
       message,
+      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),
     oa.OpenAliasAmbiguousException() => CsOpenAliasAmbiguousException(
       message,
+      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),
@@ -232,17 +251,23 @@ CsOpenAliasException _fromOpenAlias(
     oa.OpenAliasUnsupportedFieldException() ||
     oa.OpenAliasLimitExceededException() => CsOpenAliasInvalidRecordException(
       message,
+      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),
   };
 }
 
-CsOpenAliasException _fromDnssec(DnssecException error, StackTrace stack) {
+CsOpenAliasException _fromDnssec(
+  DnssecException error,
+  StackTrace stack,
+  String alias,
+) {
   final message = error.message;
   return switch (error) {
     DnssecValidationException(:final status) => CsOpenAliasDnssecException(
       message,
+      alias: alias,
       status: switch (status) {
         DnssecStatus.insecure => CsOpenAliasDnssecStatus.insecure,
         DnssecStatus.bogus => CsOpenAliasDnssecStatus.bogus,
@@ -254,11 +279,13 @@ CsOpenAliasException _fromDnssec(DnssecException error, StackTrace stack) {
     ),
     DnssecNoRecordsException() => CsOpenAliasNoRecordException(
       message,
+      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),
     DnssecInvalidNameException() => CsOpenAliasInvalidAliasException(
       message,
+      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),
@@ -270,11 +297,13 @@ CsOpenAliasException _fromDnssec(DnssecException error, StackTrace stack) {
     DnssecResponseTooLargeException() ||
     DnssecMalformedResponseException() => CsOpenAliasDnsException(
       message,
+      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),
     DnssecTimeoutException(:final timeout) => CsOpenAliasNetworkException(
       message,
+      alias: alias,
       timeout: timeout,
       cause: error,
       causeStackTrace: stack,
@@ -282,18 +311,24 @@ CsOpenAliasException _fromDnssec(DnssecException error, StackTrace stack) {
     DnssecTransportException() ||
     DnssecUnavailableException() => CsOpenAliasNetworkException(
       message,
+      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),
     DnssecCancelledException() => CsOpenAliasCancelledException(
       message,
+      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),
   };
 }
 
-CsOpenAliasException _fromDoh(DohTransportException error, StackTrace stack) {
+CsOpenAliasException _fromDoh(
+  DohTransportException error,
+  StackTrace stack,
+  String alias,
+) {
   final message = error.message;
   return switch (error) {
     DohInvalidQueryException() ||
@@ -301,6 +336,7 @@ CsOpenAliasException _fromDoh(DohTransportException error, StackTrace stack) {
     DohResponseTooLargeException() ||
     DohQuestionMismatchException() => CsOpenAliasDnsException(
       message,
+      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),
@@ -309,6 +345,7 @@ CsOpenAliasException _fromDoh(DohTransportException error, StackTrace stack) {
       :final timeout,
     ) => CsOpenAliasNetworkException(
       message,
+      alias: alias,
       timeout: timeout,
       cause: error,
       causeStackTrace: stack,
@@ -318,11 +355,13 @@ CsOpenAliasException _fromDoh(DohTransportException error, StackTrace stack) {
     DohConnectionException() ||
     DohQueueFullException() => CsOpenAliasNetworkException(
       message,
+      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),
     DohCancelledException() => CsOpenAliasCancelledException(
       message,
+      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),

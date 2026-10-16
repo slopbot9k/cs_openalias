@@ -49,11 +49,13 @@ void main() {
       expect(
         () => normalizeOpenAlias(input),
         throwsA(
-          isA<CsOpenAliasInvalidAliasException>().having(
-            (error) => error.cause,
-            'cause',
-            isA<OpenAliasInvalidNameException>(),
-          ),
+          isA<CsOpenAliasInvalidAliasException>()
+              .having(
+                (error) => error.cause,
+                'cause',
+                isA<OpenAliasInvalidNameException>(),
+              )
+              .having((error) => error.alias, 'alias', input),
         ),
         reason: input,
       );
@@ -89,13 +91,17 @@ void main() {
 
     test('plain leaves print their type and message only', () {
       for (final error in <CsOpenAliasException>[
-        CsOpenAliasInvalidAliasException('m', cause: cause),
-        CsOpenAliasNoRecordException('m', cause: cause),
-        CsOpenAliasAmbiguousException('m', cause: cause),
-        CsOpenAliasInvalidRecordException('m', cause: cause),
-        CsOpenAliasDnsException('m', cause: cause),
-        CsOpenAliasNetworkException('m', cause: cause),
-        CsOpenAliasCancelledException('m', cause: cause),
+        CsOpenAliasInvalidAliasException('m', alias: 'a.example', cause: cause),
+        CsOpenAliasNoRecordException('m', alias: 'a.example', cause: cause),
+        CsOpenAliasAmbiguousException('m', alias: 'a.example', cause: cause),
+        CsOpenAliasInvalidRecordException(
+          'm',
+          alias: 'a.example',
+          cause: cause,
+        ),
+        CsOpenAliasDnsException('m', alias: 'a.example', cause: cause),
+        CsOpenAliasNetworkException('m', alias: 'a.example', cause: cause),
+        CsOpenAliasCancelledException('m', alias: 'a.example', cause: cause),
       ]) {
         expect(error.toString(), '${error.runtimeType}: m');
         expect(error.cause, same(cause));
@@ -106,6 +112,7 @@ void main() {
     test('structured leaves print their fields', () {
       final dnssec = CsOpenAliasDnssecException(
         'not secure',
+        alias: 'a.example',
         status: CsOpenAliasDnssecStatus.bogus,
         cause: cause,
         causeStackTrace: stack,
@@ -119,6 +126,7 @@ void main() {
 
       final timeout = CsOpenAliasNetworkException(
         'deadline',
+        alias: 'a.example',
         timeout: const Duration(seconds: 12),
         cause: cause,
       );
@@ -128,6 +136,43 @@ void main() {
         'CsOpenAliasNetworkException(timeout: 0:00:12.000000): deadline',
       );
       expect(timeout.toString(), isNot(contains('secret')));
+    });
+
+    test('toString does not print the alias', () {
+      const error = CsOpenAliasNoRecordException('m', alias: 'a.example');
+      expect(error.toString(), 'CsOpenAliasNoRecordException: m');
+    });
+
+    test('userMessage is the ready-to-show text of each leaf', () {
+      const a = 'alice.example';
+      final expected = <CsOpenAliasException, String>{
+        const CsOpenAliasInvalidAliasException('m', alias: a):
+            'Enter a valid address or OpenAlias.',
+        const CsOpenAliasNoRecordException('m', alias: a):
+            'No Monero OpenAlias record was found for alice.example.',
+        const CsOpenAliasAmbiguousException('m', alias: a):
+            'This alias has multiple Monero addresses. '
+            'Ask the recipient for an address.',
+        const CsOpenAliasInvalidRecordException('m', alias: a):
+            'This alias has an invalid or unsupported Monero record for '
+            'this wallet.',
+        const CsOpenAliasDnssecException(
+          'm',
+          alias: a,
+          status: CsOpenAliasDnssecStatus.bogus,
+        ): 'DNSSEC verification failed or is unavailable. '
+            'Ask the recipient for a verified alias or address.',
+        const CsOpenAliasDnsException('m', alias: a):
+            'The DNS lookup for alice.example failed. '
+            'No address was accepted.',
+        const CsOpenAliasNetworkException('m', alias: a):
+            'OpenAlias lookup failed. Check your connection and try again.',
+        const CsOpenAliasCancelledException('m', alias: a):
+            'OpenAlias lookup cancelled.',
+      };
+      expect(expected, hasLength(8));
+      expected.forEach((error, text) => expect(error.userMessage, text));
+      expect(openAliasLookupFailedTitle, 'OpenAlias lookup failed');
     });
   });
 
@@ -163,10 +208,12 @@ void main() {
     final uncaught = <Object>[];
     await runZonedGuarded(() async {
       CsOpenAliasOperation<void>.failed(
-        const CsOpenAliasCancelledException('dropped'),
+        CsOpenAliasCancelledException('dropped', alias: 'a.example'),
       );
       CsOpenAliasOperation<void>(
-        Future<void>.error(const CsOpenAliasNetworkException('dropped')),
+        Future<void>.error(
+          CsOpenAliasNetworkException('dropped', alias: 'a.example'),
+        ),
         () {},
       );
       await Future<void>.delayed(Duration.zero);

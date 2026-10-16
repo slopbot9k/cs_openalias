@@ -250,6 +250,45 @@ void main() {
 
   group('failure mapping', () {
     final stack = StackTrace.current;
+
+    test('an invalid alias keeps the raw input', () async {
+      final operation = start(FakeLookup(), alias: ' Not An Alias ');
+      await expectLater(
+        operation.result,
+        throwsA(
+          isA<CsOpenAliasInvalidAliasException>()
+              .having((e) => e.alias, 'alias', ' Not An Alias ')
+              .having(
+                (e) => e.userMessage,
+                'userMessage',
+                'Enter a valid address or OpenAlias.',
+              ),
+        ),
+      );
+    });
+
+    test('a mapped failure carries the normalised alias', () async {
+      final lookup = FakeLookup(
+        () => Future.error(const DnssecNoRecordsException('nx'), stack),
+      );
+      await expectLater(
+        start(lookup, alias: ' Alice@Example. ').result,
+        throwsA(
+          isA<CsOpenAliasNoRecordException>()
+              .having((e) => e.alias, 'alias', 'alice.example')
+              .having(
+                (e) => e.userMessage,
+                'userMessage',
+                'No Monero OpenAlias record was found for alice.example.',
+              ),
+        ),
+      );
+    });
+
+    test('mapLookupFailure passes other errors through', () {
+      final error = StateError('bug');
+      expect(mapLookupFailure(error, stack, 'alice.example'), same(error));
+    });
     for (final (error, matcher) in <(DnssecException, Matcher)>[
       (
         const DnssecNoRecordsException('nx'),
@@ -315,7 +354,8 @@ void main() {
               isA<CsOpenAliasException>()
                   .having((e) => e.cause, 'cause', same(error))
                   .having((e) => e.causeStackTrace, 'stack', same(stack))
-                  .having((e) => e.message, 'message', error.message),
+                  .having((e) => e.message, 'message', error.message)
+                  .having((e) => e.alias, 'alias', 'alice.example'),
             ),
           ),
         );
@@ -395,7 +435,8 @@ void main() {
                     'stack',
                     same(transportStack),
                   )
-                  .having((e) => e.message, 'message', error.message),
+                  .having((e) => e.message, 'message', error.message)
+                  .having((e) => e.alias, 'alias', 'alice.example'),
             ),
           ),
         );
@@ -470,7 +511,13 @@ void main() {
       expect(network.closes, 1);
       await expectLater(
         operation.result,
-        throwsA(isA<CsOpenAliasCancelledException>()),
+        throwsA(
+          isA<CsOpenAliasCancelledException>().having(
+            (e) => e.alias,
+            'alias',
+            'alice.example',
+          ),
+        ),
       );
 
       lookup.completer.complete(answer('alice.example', [_alice]));
