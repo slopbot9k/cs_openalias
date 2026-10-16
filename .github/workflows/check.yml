@@ -21,17 +21,17 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: cypherstack/openalias
-          ref: 5581fce3ad0103ae756fecb7e79aae58cb42ac12
+          ref: fbcb56b9f399d61b52cc762412c538343e460923
           path: openalias
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: cypherstack/dnssec_resolver
-          ref: 52693281a7fccc9a55cfa4f77dd58cde31cdf8b2
+          ref: e03de21083a819732efef323c62c1bc259fe17f5
           path: dnssec_resolver
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: cypherstack/doh_transport
-          ref: 42abf37b025d7be6d60484da6b5e0d95f884ce4a
+          ref: a6a5d8e8843c045ae4f18bee9e34ffde5d457910
           path: doh_transport
       - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
         with:
@@ -41,14 +41,13 @@ jobs:
       - shell: bash
         working-directory: cs_openalias
         run: |
-          cat > pubspec_overrides.yaml <<'YAML'
-          dependency_overrides:
-            openalias:
-              path: ../openalias
-            dnssec_resolver:
-              path: ../dnssec_resolver
-            doh_transport:
-              path: ../doh_transport
-          YAML
+          overrides() {
+            echo 'dependency_overrides:'
+            for package in openalias dnssec_resolver doh_transport; do
+              printf '  %s:\n    path: %s/%s\n' "$package" "$1" "$package"
+            done
+          }
+          overrides .. > pubspec_overrides.yaml
+          overrides ../.. > example/pubspec_overrides.yaml
       - run: dart tool/check.dart
         working-directory: cs_openalias
