@@ -10,5 +10,5 @@ dependencies:
   dnssec_resolver: ^0.0.1
   doh_transport: ^0.0.1
 dev_dependencies:
-  lints: ^6.0.0
+  lints: ^5.0.0
   test: ^1.25.0
