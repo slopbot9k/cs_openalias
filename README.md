@@ -1,64 +1,81 @@
 # cs_openalias
 
-Secure OpenAlias resolution composed from `openalias`, local validation from
-`dnssec_resolver`, and DNS-over-HTTPS networking from `doh_transport`.
+OpenAlias lookups for Monero wallets: DNS over HTTPS from `doh_transport`,
+on-device DNSSEC validation from `dnssec_resolver`, and record parsing from
+`openalias`, behind one call.
 
 ## Usage
 
 ```dart
 import 'package:cs_openalias/cs_openalias.dart';
 
-final resolver = CsOpenAliasResolver(
-  validateAddress: isValidMoneroAddress,
-  isAllowed: () => privacySettings.allowExternalCalls,
+final lookup = resolveOpenAlias(
+  'donate@getmonero.org',
+  isValidAddress: isValidMoneroAddress,
+  proxy: torEnabled
+      ? const CsOpenAliasProxy(address: '127.0.0.1', port: 9050)
+      : null,
 );
-final recipient = await resolver.resolve('donate@getmonero.org');
-print(recipient.address);
+// Call lookup.cancel() if the user leaves or the network settings change.
+try {
+  final recipient = await lookup.result;
+  print(recipient.address);
+} on CsOpenAliasException catch (error) {
+  // Map the leaf type to your own message.
+}
 ```
 
-`startResolve` returns a `CsOpenAliasOperation` whose `cancel` callback owns
-the complete DNSSEC lookup and all outstanding key requests.
+`normalizeOpenAlias` lowercases an alias and turns `user@domain` into
+`user.domain`; it throws `CsOpenAliasInvalidAliasException` for anything
+else, so it also tells whether input is an alias at all.
 
-## Network and privacy model
+## Network and trust
 
-Each lookup owns one transport session and closes it on success, failure, or
-cancellation. Closure starts before the result is delivered; socket teardown
-may finish asynchronously. The default endpoint is
-`https://dns.google/dns-query`, reached at the fixed numeric destination
-`8.8.8.8`; TLS continues to verify the endpoint hostname. Configure a numeric
-`CsOpenAliasProxy` to use SOCKS. Every proxied lookup gets fresh isolation
-credentials, while connections are reused only inside that lookup.
+- Queries go to `https://dns.google/dns-query` at `8.8.8.8`, so no local DNS
+  lookup happens; TLS still verifies `dns.google`. Queries are padded.
+- Without `proxy` the lookup connects directly. With it, the lookup connects
+  only through that SOCKS5 proxy, using fresh isolation credentials, and never
+  falls back to a direct connection. The proxy address must be a numeric IP;
+  otherwise `resolveOpenAlias` throws `ArgumentError`.
+- Each lookup owns one transport, reuses its connections and closes it once
+  when the lookup succeeds, fails or is cancelled. `cancel` stops the DNSSEC
+  lookup and every request in flight.
+- Deadlines: connect 5 s, request 12 s, whole lookup 20 s; through a proxy
+  10 s, 20 s and 40 s. At most 64 queries per lookup, validated from the IANA
+  root keys.
+- Only a DNSSEC-secure TXT answer for the alias is used. Of its `oa1:xmr`
+  records exactly one recipient address must remain, and it must pass
+  `isValidAddress`. `tx_payment_id` is rejected. `recipient_name` and
+  `tx_description` are untrusted display text; `checksum` and
+  `address_signature` are not verified.
+- The resolver sees every query and, without a proxy, your IP address.
 
-`isAllowed` is checked before session creation, before every DNS exchange,
-after every response, and before returning a recipient. Revocation cancels the
-lookup. There is no direct-network fallback when proxy creation or use fails.
+## Errors
 
-Passing `networkFactory` replaces the default transport. The facade calls
-`create` once per lookup and calls the returned session's `close` exactly once.
-Each `startWire` operation must enforce its response bound, provide idempotent
-cancellation that releases pending work, and keep independent lookups and
-lanes isolated. A custom factory—or `httpClientFactory` in network options—owns
-its TLS verification, numeric-destination, proxy, redirect, deadline,
-connection-reuse, and no-fallback guarantees; the facade cannot restore
-guarantees bypassed by injected networking. DNSSEC still independently checks
-HTTP status, body bounds, wire framing/question identity, and response Age.
-The facade calls `DnssecResult.secureTxt()` before constructing the trusted
-OpenAlias TXT answer. Insecure, bogus, indeterminate, malformed, and
-unavailable validation therefore fail as typed facade errors before OpenAlias
-parsing; no validator token is treated as independent proof.
+`result` fails with a leaf of the sealed `CsOpenAliasException`; `cause`
+keeps the underlying error and is never printed by `toString`.
 
-The public API exposes only facade-owned operations, results, configuration,
-network-test seams, and a sealed exception family. Lower-package result and
-exception types do not cross the boundary.
+| Leaf | Meaning |
+| --- | --- |
+| `CsOpenAliasInvalidAliasException` | not an alias |
+| `CsOpenAliasNoRecordException` | no `oa1:xmr` record, or DNSSEC proved there is no TXT record |
+| `CsOpenAliasAmbiguousException` | several addresses or conflicting records |
+| `CsOpenAliasInvalidRecordException` | malformed record, duplicate or unsupported field, limit exceeded, or address rejected |
+| `CsOpenAliasDnssecException` | not secure; `status` is `insecure`, `bogus` or `indeterminate` |
+| `CsOpenAliasDnsException` | error rcode, CNAME loop or chain, mismatched question, malformed or oversized response |
+| `CsOpenAliasNetworkException` | connection, proxy, TLS or HTTP failure, validator unavailable; `timeout` is set when a deadline passed |
+| `CsOpenAliasCancelledException` | the lookup was cancelled |
+
+Errors thrown by `isValidAddress` propagate unchanged.
 
 ## Development
 
-Use Dart 3.10 or later and rustup with Rust 1.90.0. The DNSSEC build hook
-also needs the Rust target for the platform you are building for.
+Use Dart 3.10 or later and rustup with Rust 1.90.0; the DNSSEC build hook
+also needs the Rust target of the platform you build for.
 
-The core packages are not published yet. Clone `openalias`, `dnssec_resolver`,
-and `doh_transport` beside this repository, then add an untracked
-`pubspec_overrides.yaml`:
+The constituent packages are not published yet. Clone `openalias`,
+`dnssec_resolver` and `doh_transport` beside this repository and add an
+untracked `pubspec_overrides.yaml` here:
 
 ```yaml
 dependency_overrides:
@@ -70,12 +87,20 @@ dependency_overrides:
     path: ../doh_transport
 ```
 
-Run `dart tool/check.dart` from the repository root. It resolves dependencies,
-checks formatting and analysis, runs the tests, and performs a publish dry run;
-it does not publish. Opt-in live tests run with
-`OPENALIAS_LIVE_TESTS=1 dart test test/live_test.dart`.
+and the same in `example/` with `../../` paths.
 
-Integration fixtures retain their adjacent license notice.
+- `dart tool/check.dart` resolves dependencies, checks formatting and
+  analysis, runs the unit tests and the example's integration suite, and
+  performs a publish dry run.
+- `example/tool/generate_fixtures.sh` regenerates the integration fixtures
+  from a `dnssec_resolver` checkout (`DNSSEC_RESOLVER_DIR`, default
+  `../../dnssec_resolver` from `example/`).
+- `OPENALIAS_LIVE_TESTS=1 dart test test/live_test.dart` queries dns.google.
+- `dart run bin/main.dart donate@getmonero.org [<proxy ip> <proxy port>]` in
+  `example/` performs one lookup.
+
+`example/integration_test/support/LICENSE` covers the test support files
+copied from `doh_transport`.
 
 ## License
 

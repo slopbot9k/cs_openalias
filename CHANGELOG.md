@@ -1,6 +1,6 @@
 ## 0.0.1
 
-- Add a secure OpenAlias facade with on-device, secure-only DNSSEC validation
-  before OpenAlias parsing and configurable DNS-over-HTTPS transport.
-- Add typed failures, cancellation, privacy-policy checks, immutable results,
-  and bounded network/resource handling.
+- `resolveOpenAlias` looks up an OpenAlias name over DNS over HTTPS, directly
+  or only through a SOCKS5 proxy, validates the answer with DNSSEC on the
+  device and returns its one `oa1:xmr` recipient as a cancellable
+  operation. Failures are leaves of the sealed `CsOpenAliasException`.
