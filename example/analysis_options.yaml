@@ -1,0 +1,6 @@
+include: ../analysis_options.yaml
+linter:
+  rules:
+    # The integration tests reach a loopback resolver through the package's
+    # internal transport and lookup seams.
+    implementation_imports: false

@@ -1,0 +1,12 @@
+name: cs_openalias_example
+description: Looks up an OpenAlias recipient and runs the cs_openalias integration tests.
+publish_to: none
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+dependencies:
+  cs_openalias:
+    path: ../
+dev_dependencies:
+  lints: ^5.0.0
+  pointycastle: ^4.0.0
+  test: ^1.25.0
