@@ -11,5 +11,4 @@ dependencies:
   doh_transport: ^0.0.1
 dev_dependencies:
   lints: ^6.0.0
-  pointycastle: ^4.0.0
   test: ^1.25.0

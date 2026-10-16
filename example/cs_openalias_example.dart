@@ -2,9 +2,11 @@ import 'package:cs_openalias/cs_openalias.dart';
 
 Future<void> printRecipient(
   String alias,
-  bool Function(String) validateAddress,
+  bool Function(String address) isValidAddress,
 ) async {
-  final resolver = CsOpenAliasResolver(validateAddress: validateAddress);
-  final recipient = await resolver.resolve(alias);
+  final recipient = await resolveOpenAlias(
+    alias,
+    isValidAddress: isValidAddress,
+  ).result;
   print(recipient.address);
 }

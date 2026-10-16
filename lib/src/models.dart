@@ -1,26 +1,30 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'exceptions.dart';
 
-final class CsOpenAliasOperation<T> {
-  final Future<T> result;
-  final void Function() cancel;
-
-  CsOpenAliasOperation(this.result, this.cancel) {
-    result.ignore();
-  }
-
-  factory CsOpenAliasOperation.failed(CsOpenAliasException error) =>
-      CsOpenAliasOperation(Future<T>.error(error), () {});
+/// A SOCKS5 proxy, such as Tor, at a numeric IP [address]. Every lookup
+/// through it uses fresh isolation credentials.
+final class CsOpenAliasProxy {
+  final String address;
+  final int port;
+  const CsOpenAliasProxy({required this.address, required this.port});
 }
 
+/// A recipient from a DNSSEC-secure `oa1:xmr` record.
 final class CsOpenAliasRecipient {
+  /// The normalised alias that was looked up.
   final String domain;
   final String address;
   final String application;
+
+  /// The owner of the TXT records after following CNAMEs.
   final String canonicalName;
+
+  /// Seconds the answer may be cached: the smallest TTL in the answer chain.
   final int ttl;
+
+  /// Every field of the record. `recipient_name` and `tx_description` are
+  /// untrusted display text.
   final Map<String, String> fields;
 
   CsOpenAliasRecipient({
@@ -37,80 +41,16 @@ final class CsOpenAliasRecipient {
   }
 }
 
-final class CsOpenAliasProxy {
-  final String address;
-  final int port;
+/// A started lookup. [result] carries every failure; [cancel] is idempotent
+/// and ends the lookup with [CsOpenAliasCancelledException].
+final class CsOpenAliasOperation<T> {
+  final Future<T> result;
+  final void Function() cancel;
 
-  const CsOpenAliasProxy({required this.address, required this.port});
-}
-
-final class CsOpenAliasNetworkOptions {
-  final Uri endpoint;
-  final String destinationAddress;
-  final CsOpenAliasProxy? proxy;
-  final Duration connectionTimeout;
-  final Duration requestTimeout;
-  final Duration idleTimeout;
-  final int maxConcurrentRequests;
-  final int maxQueuedRequests;
-  final bool padQueries;
-  final bool reuseConnections;
-
-  /// Optional trust store for embedding/tests. The endpoint hostname is still
-  /// used for TLS verification; this never permits a certificate bypass.
-  final SecurityContext? securityContext;
-
-  /// Test/embedding client seam. A custom client bypasses the default
-  /// transport's socket, TLS, numeric-destination, and proxy guarantees; its
-  /// owner must provide and test equivalent guarantees.
-  final HttpClient Function(SecurityContext? context)? httpClientFactory;
-
-  CsOpenAliasNetworkOptions({
-    Uri? endpoint,
-    this.destinationAddress = '8.8.8.8',
-    this.proxy,
-    this.connectionTimeout = const Duration(seconds: 5),
-    this.requestTimeout = const Duration(seconds: 12),
-    this.idleTimeout = const Duration(seconds: 5),
-    this.maxConcurrentRequests = 8,
-    this.maxQueuedRequests = 64,
-    this.padQueries = true,
-    this.reuseConnections = true,
-    this.securityContext,
-    this.httpClientFactory,
-  }) : endpoint = endpoint ?? Uri.https('dns.google', '/dns-query');
-}
-
-final class CsOpenAliasWireResponse {
-  final int statusCode;
-  final List<int> body;
-  final Duration age;
-
-  CsOpenAliasWireResponse(
-    this.statusCode,
-    List<int> body, {
-    this.age = Duration.zero,
-  }) : body = List<int>.unmodifiable(body) {
-    if (statusCode < 100 || statusCode > 599) {
-      throw ArgumentError.value(statusCode, 'statusCode');
-    }
-    if (age < Duration.zero) throw ArgumentError.value(age, 'age');
-    if (this.body.any((byte) => byte < 0 || byte > 255)) {
-      throw ArgumentError.value(body, 'body', 'DNS body must contain octets');
-    }
+  CsOpenAliasOperation(this.result, this.cancel) {
+    result.ignore();
   }
-}
 
-abstract interface class CsOpenAliasNetworkSession {
-  CsOpenAliasOperation<CsOpenAliasWireResponse> startWire(
-    Uri endpoint,
-    List<int> query, {
-    required int maxResponseBytes,
-  });
-
-  Future<void> close();
-}
-
-abstract interface class CsOpenAliasNetworkFactory {
-  CsOpenAliasNetworkSession create(CsOpenAliasNetworkOptions options);
+  factory CsOpenAliasOperation.failed(CsOpenAliasException error) =>
+      CsOpenAliasOperation(Future<T>.error(error), () {});
 }
