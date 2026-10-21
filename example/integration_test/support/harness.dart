@@ -189,7 +189,7 @@ final class Harness {
         endpoint: transport.endpoint,
         close: () {
           closes++;
-          return transport.close();
+          transport.close();
         },
       );
     },

@@ -83,7 +83,7 @@ CsOpenAliasOperation<CsOpenAliasRecipient> startOpenAliasLookup(
   void release() {
     done = true;
     try {
-      transport.close().ignore();
+      transport.close();
     } catch (_) {}
   }
 
@@ -350,7 +350,6 @@ CsOpenAliasException _fromDoh(
       cause: error,
       causeStackTrace: stack,
     ),
-    DohCancelledException(reason: DohCancellationReason.redirectRefused) ||
     DohHttpStatusException() ||
     DohConnectionException() ||
     DohQueueFullException() => CsOpenAliasNetworkException(

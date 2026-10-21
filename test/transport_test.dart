@@ -35,16 +35,13 @@ void main() {
       for (final wire in [first, second]) {
         expect(wire.proxy!.host, InternetAddress.loopbackIPv4);
         expect(wire.proxy!.port, 9050);
-        expect(wire.proxy!.credentials, isNotNull);
+        expect(wire.proxy!.isolationToken, matches(RegExp(r'^[0-9a-f]{32}$')));
         expect(wire.destination, InternetAddress('8.8.8.8'));
         expect(wire.connectionTimeout, const Duration(seconds: 10));
         expect(wire.requestTimeout, const Duration(seconds: 20));
         expect(wire.reuseConnections, isTrue);
       }
-      expect(
-        identical(first.proxy!.credentials, second.proxy!.credentials),
-        isFalse,
-      );
+      expect(first.proxy!.isolationToken, isNot(second.proxy!.isolationToken));
     });
 
     test('isolation tokens are 128 random bits', () {
@@ -79,30 +76,11 @@ void main() {
       expect(exchange.maxResponseBytes, 65535);
 
       exchange.completer.complete(
-        DohHttpResponse(200, [4, 5], age: const Duration(seconds: 9)),
+        DohHttpResponse([4, 5], age: const Duration(seconds: 9)),
       );
       final response = await operation.result;
       expect(response.message, [4, 5]);
       expect(response.age, const Duration(seconds: 9));
-    });
-
-    test('rejects a status other than 200', () async {
-      final wire = FakeWire();
-      final operation = DohDnssecPort(
-        wire,
-        endpoint,
-      ).startWire([1], maxResponseBytes: 512);
-      wire.exchanges.single.completer.complete(DohHttpResponse(204, const []));
-      await expectLater(
-        operation.result,
-        throwsA(
-          isA<DohHttpStatusException>().having(
-            (error) => error.statusCode,
-            'statusCode',
-            204,
-          ),
-        ),
-      );
     });
 
     test('passes transport failures through unchanged', () async {

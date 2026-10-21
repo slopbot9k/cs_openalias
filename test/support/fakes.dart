@@ -16,13 +16,7 @@ final class FakeNetwork {
 
   LookupTransport open(CsOpenAliasProxy? proxy) {
     opened.add(proxy);
-    return (
-      wire: wire,
-      endpoint: endpoint,
-      close: () async {
-        closes++;
-      },
-    );
+    return (wire: wire, endpoint: endpoint, close: () => closes++);
   }
 }
 
@@ -40,14 +34,17 @@ final class FakeWire implements DohWireTransport {
   final exchanges = <FakeExchange>[];
 
   @override
-  DnsOperation<DohHttpResponse> startWire(
+  DohTransportOperation<DohHttpResponse> startWire(
     Uri uri,
     List<int> query, {
     required int maxResponseBytes,
   }) {
     final exchange = FakeExchange(uri, query, maxResponseBytes);
     exchanges.add(exchange);
-    return DnsOperation(exchange.completer.future, () => exchange.cancels++);
+    return DohTransportOperation(
+      exchange.completer.future,
+      () => exchange.cancels++,
+    );
   }
 }
 

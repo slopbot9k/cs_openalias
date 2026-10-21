@@ -375,10 +375,6 @@ void main() {
         DohHttpStatusException('status', statusCode: 503),
         DohConnectionException('refused'),
         DohQueueFullException('full', maxQueuedRequests: 64),
-        DohCancelledException(
-          'redirected',
-          reason: DohCancellationReason.redirectRefused,
-        ),
       ])
         (
           error,

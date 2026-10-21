@@ -22,10 +22,10 @@ const proxiedDeadlines = (
 Deadlines deadlinesFor(CsOpenAliasProxy? proxy) =>
     proxy == null ? directDeadlines : proxiedDeadlines;
 
-typedef DohResolver = ({Uri endpoint, InternetAddress destination});
+typedef ResolverTarget = ({Uri endpoint, InternetAddress destination});
 
 // One record: the numeric destination must serve the endpoint's certificate.
-final DohResolver defaultResolver = (
+final ResolverTarget defaultResolver = (
   endpoint: Uri.https('dns.google', '/dns-query'),
   destination: InternetAddress('8.8.8.8'),
 );
@@ -34,7 +34,7 @@ final DohResolver defaultResolver = (
 typedef LookupTransport = ({
   DohWireTransport wire,
   Uri endpoint,
-  Future<void> Function() close,
+  void Function() close,
 });
 
 typedef LookupTransportFactory =
@@ -60,7 +60,7 @@ InternetAddress proxyAddress(CsOpenAliasProxy proxy) {
 /// exist for loopback integration tests.
 LookupTransport openDohTransport(
   CsOpenAliasProxy? proxy, {
-  DohResolver? resolver,
+  ResolverTarget? resolver,
   SecurityContext? securityContext,
 }) {
   final (:endpoint, :destination) = resolver ?? defaultResolver;
@@ -68,10 +68,10 @@ LookupTransport openDohTransport(
   final transport = IoDohTransport(
     proxy: proxy == null
         ? null
-        : SocksProxy(
+        : DohSocksProxy(
             proxyAddress(proxy),
             proxy.port,
-            credentials: SocksCredentials.isolation(isolationToken()),
+            isolationToken: isolationToken(),
           ),
     destination: destination,
     securityContext: securityContext,
@@ -111,15 +111,9 @@ final class DohDnssecPort implements DnssecWireTransport {
       maxResponseBytes: maxResponseBytes,
     );
     return DnssecOperation(
-      operation.result.then((response) {
-        if (response.statusCode != 200) {
-          throw DohHttpStatusException(
-            'Resolver HTTP request failed',
-            statusCode: response.statusCode,
-          );
-        }
-        return DnssecWireResponse(response.body, age: response.age);
-      }),
+      operation.result.then(
+        (response) => DnssecWireResponse(response.body, age: response.age),
+      ),
       operation.cancel,
     );
   }
