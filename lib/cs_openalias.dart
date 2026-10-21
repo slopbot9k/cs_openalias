@@ -3,4 +3,4 @@ library;
 
 export 'src/exceptions.dart';
 export 'src/models.dart';
-export 'src/resolver.dart' show normalizeOpenAlias, resolveOpenAlias;
+export 'src/resolver.dart' show isOpenAlias, resolveOpenAlias;

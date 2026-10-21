@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:cs_openalias/cs_openalias.dart';
-import 'package:openalias/openalias.dart' show OpenAliasInvalidNameException;
 import 'package:test/test.dart';
 
 typedef _Resolve =
@@ -27,15 +26,17 @@ void main() {
     expect(resolve, isNotNull);
   });
 
-  test('normalizeOpenAlias accepts user@domain and dotted names', () {
-    expect(
-      normalizeOpenAlias(' Donate@GetMonero.org. '),
+  test('isOpenAlias accepts user@domain and dotted names', () {
+    for (final input in [
+      ' Donate@GetMonero.org. ',
       'donate.getmonero.org',
-    );
-    expect(normalizeOpenAlias('donate.getmonero.org'), 'donate.getmonero.org');
+      'getmonero.org',
+    ]) {
+      expect(isOpenAlias(input), isTrue, reason: input);
+    }
   });
 
-  test('normalizeOpenAlias rejects input that is not an alias', () {
+  test('isOpenAlias rejects input that is not an alias', () {
     for (final input in [
       '',
       'not-a-domain',
@@ -43,20 +44,9 @@ void main() {
       'alice.onion',
       'café.example',
       '${'a' * 64}.example',
+      '4AdUndXHHZ6cfufTMvppY6JwXNouMBzSkbLYfpAV5Usx',
     ]) {
-      expect(
-        () => normalizeOpenAlias(input),
-        throwsA(
-          isA<CsOpenAliasInvalidAliasException>()
-              .having(
-                (error) => error.cause,
-                'cause',
-                isA<OpenAliasInvalidNameException>(),
-              )
-              .having((error) => error.alias, 'alias', input),
-        ),
-        reason: input,
-      );
+      expect(isOpenAlias(input), isFalse, reason: input);
     }
   });
 

@@ -10,18 +10,13 @@ import 'transport.dart';
 
 const _application = 'xmr';
 
-/// Lowercases [input] and turns `user@domain` into `user.domain`, or throws
-/// [CsOpenAliasInvalidAliasException].
-String normalizeOpenAlias(String input) {
+/// Whether [input] normalises to an OpenAlias name.
+bool isOpenAlias(String input) {
   try {
-    return oa.normalizeOpenAlias(input);
-  } on oa.OpenAliasException catch (error, stack) {
-    throw CsOpenAliasInvalidAliasException(
-      error.message,
-      alias: input,
-      cause: error,
-      causeStackTrace: stack,
-    );
+    oa.normalizeOpenAlias(input);
+    return true;
+  } on oa.OpenAliasException {
+    return false;
   }
 }
 
@@ -71,9 +66,16 @@ CsOpenAliasOperation<CsOpenAliasRecipient> startOpenAliasLookup(
   if (proxy != null) proxyAddress(proxy);
   final String domain;
   try {
-    domain = normalizeOpenAlias(alias);
-  } on CsOpenAliasInvalidAliasException catch (error) {
-    return CsOpenAliasOperation.failed(error);
+    domain = oa.normalizeOpenAlias(alias);
+  } on oa.OpenAliasException catch (error, stack) {
+    return CsOpenAliasOperation.failed(
+      CsOpenAliasInvalidAliasException(
+        error.message,
+        alias: alias,
+        cause: error,
+        causeStackTrace: stack,
+      ),
+    );
   }
 
   final transport = openTransport(proxy);

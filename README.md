@@ -25,9 +25,9 @@ try {
 }
 ```
 
-`normalizeOpenAlias` lowercases an alias and turns `user@domain` into
-`user.domain`; it throws `CsOpenAliasInvalidAliasException` for anything
-else, so it also tells whether input is an alias at all.
+`isOpenAlias` tells whether input is an alias at all. The lookup lowercases
+it and turns `user@domain` into `user.domain`; `recipient.domain` is that
+name.
 
 ## Network and trust
 

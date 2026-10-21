@@ -218,11 +218,13 @@ void main() {
       await expectLater(
         operation.result,
         throwsA(
-          isA<CsOpenAliasInvalidAliasException>().having(
-            (e) => e.alias,
-            'alias',
-            ' Not An Alias ',
-          ),
+          isA<CsOpenAliasInvalidAliasException>()
+              .having((e) => e.alias, 'alias', ' Not An Alias ')
+              .having(
+                (e) => e.cause,
+                'cause',
+                isA<oa.OpenAliasInvalidNameException>(),
+              ),
         ),
       );
     });

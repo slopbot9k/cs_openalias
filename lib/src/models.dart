@@ -12,7 +12,8 @@ final class CsOpenAliasProxy {
 
 /// A recipient from a DNSSEC-secure `oa1:xmr` record.
 final class CsOpenAliasRecipient {
-  /// The normalised alias that was looked up.
+  /// The alias that was looked up, lowercased with `user@domain` turned into
+  /// `user.domain`.
   final String domain;
   final String address;
 
