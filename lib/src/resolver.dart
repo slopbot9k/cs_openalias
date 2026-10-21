@@ -192,12 +192,7 @@ CsOpenAliasException _fromOpenAlias(
       cause: error,
       causeStackTrace: stack,
     ),
-    oa.OpenAliasAmbiguousException() => CsOpenAliasAmbiguousException(
-      message,
-      alias: alias,
-      cause: error,
-      causeStackTrace: stack,
-    ),
+    oa.OpenAliasAmbiguousException() ||
     oa.OpenAliasInvalidRecordException() ||
     oa.OpenAliasDuplicateFieldException() ||
     oa.OpenAliasInvalidAddressException() ||
@@ -248,7 +243,9 @@ CsOpenAliasException _fromDnssec(
     DnssecQueryFailedException() ||
     DnssecQuestionMismatchException() ||
     DnssecResponseTooLargeException() ||
-    DnssecMalformedResponseException() => CsOpenAliasDnsException(
+    DnssecMalformedResponseException() ||
+    DnssecTransportException() ||
+    DnssecUnavailableException() => CsOpenAliasNetworkException(
       message,
       alias: alias,
       cause: error,
@@ -258,13 +255,6 @@ CsOpenAliasException _fromDnssec(
       message,
       alias: alias,
       timeout: timeout,
-      cause: error,
-      causeStackTrace: stack,
-    ),
-    DnssecTransportException() ||
-    DnssecUnavailableException() => CsOpenAliasNetworkException(
-      message,
-      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),
@@ -287,7 +277,10 @@ CsOpenAliasException _fromDoh(
     DohInvalidQueryException() ||
     DohMalformedResponseException() ||
     DohResponseTooLargeException() ||
-    DohQuestionMismatchException() => CsOpenAliasDnsException(
+    DohQuestionMismatchException() ||
+    DohHttpStatusException() ||
+    DohConnectionException() ||
+    DohQueueFullException() => CsOpenAliasNetworkException(
       message,
       alias: alias,
       cause: error,
@@ -300,14 +293,6 @@ CsOpenAliasException _fromDoh(
       message,
       alias: alias,
       timeout: timeout,
-      cause: error,
-      causeStackTrace: stack,
-    ),
-    DohHttpStatusException() ||
-    DohConnectionException() ||
-    DohQueueFullException() => CsOpenAliasNetworkException(
-      message,
-      alias: alias,
       cause: error,
       causeStackTrace: stack,
     ),

@@ -15,10 +15,8 @@ typedef _Resolve =
 String _leaf(CsOpenAliasException error) => switch (error) {
   CsOpenAliasInvalidAliasException() => 'alias',
   CsOpenAliasNoRecordException() => 'no record',
-  CsOpenAliasAmbiguousException() => 'ambiguous',
   CsOpenAliasInvalidRecordException() => 'record',
   CsOpenAliasDnssecException() => 'dnssec',
-  CsOpenAliasDnsException() => 'dns',
   CsOpenAliasNetworkException() => 'network',
   CsOpenAliasCancelledException() => 'cancelled',
 };
@@ -94,13 +92,11 @@ void main() {
       for (final error in <CsOpenAliasException>[
         CsOpenAliasInvalidAliasException('m', alias: 'a.example', cause: cause),
         CsOpenAliasNoRecordException('m', alias: 'a.example', cause: cause),
-        CsOpenAliasAmbiguousException('m', alias: 'a.example', cause: cause),
         CsOpenAliasInvalidRecordException(
           'm',
           alias: 'a.example',
           cause: cause,
         ),
-        CsOpenAliasDnsException('m', alias: 'a.example', cause: cause),
         CsOpenAliasNetworkException('m', alias: 'a.example', cause: cause),
         CsOpenAliasCancelledException('m', alias: 'a.example', cause: cause),
       ]) {

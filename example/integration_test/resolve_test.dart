@@ -74,10 +74,10 @@ void main() {
     });
   }
 
-  test('a CNAME loop is a DNS failure', () async {
+  test('a CNAME loop is a network failure', () async {
     await expectLater(
       harness.start('loop.example.test').result,
-      throwsA(isA<CsOpenAliasDnsException>()),
+      throwsA(isA<CsOpenAliasNetworkException>()),
     );
   });
 
@@ -101,7 +101,7 @@ void main() {
     expect(harness.closes, 1);
   });
 
-  test('a response of another media type is a DNS failure', () async {
+  test('a response of another media type is a network failure', () async {
     server.respond = (request) async {
       request.response
         ..headers.contentType = ContentType.json
@@ -110,7 +110,7 @@ void main() {
     };
     await expectLater(
       harness.start('alice.example.test').result,
-      throwsA(isA<CsOpenAliasDnsException>()),
+      throwsA(isA<CsOpenAliasNetworkException>()),
     );
   });
 

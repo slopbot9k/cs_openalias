@@ -40,18 +40,7 @@ final class CsOpenAliasNoRecordException extends CsOpenAliasException {
   });
 }
 
-/// The records name several recipient addresses or conflict.
-final class CsOpenAliasAmbiguousException extends CsOpenAliasException {
-  const CsOpenAliasAmbiguousException(
-    super.message, {
-    required super.alias,
-    super.cause,
-    super.causeStackTrace,
-  });
-}
-
-/// A record was found but is unusable: malformed, duplicate or unsupported
-/// fields, over a limit, or an address the wallet rejected.
+/// The matching records are malformed, oversized, ambiguous or rejected.
 final class CsOpenAliasInvalidRecordException extends CsOpenAliasException {
   const CsOpenAliasInvalidRecordException(
     super.message, {
@@ -78,20 +67,9 @@ final class CsOpenAliasDnssecException extends CsOpenAliasException {
   String toString() => '$runtimeType(status: ${status.name}): $message';
 }
 
-/// The DNS exchange failed: an error rcode, a CNAME loop, chain or conflict,
-/// a mismatched question, or a malformed or oversized response.
-final class CsOpenAliasDnsException extends CsOpenAliasException {
-  const CsOpenAliasDnsException(
-    super.message, {
-    required super.alias,
-    super.cause,
-    super.causeStackTrace,
-  });
-}
-
-/// The connection, proxy, TLS or HTTP exchange failed, a deadline passed, or
-/// the validator is unavailable. [timeout] is set when a deadline passed.
+/// The DNS exchange or the validator failed, or a deadline passed.
 final class CsOpenAliasNetworkException extends CsOpenAliasException {
+  /// Set when a deadline passed.
   final Duration? timeout;
   const CsOpenAliasNetworkException(
     super.message, {

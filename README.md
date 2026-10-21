@@ -62,11 +62,9 @@ users is the app's choice.
 | --- | --- |
 | `CsOpenAliasInvalidAliasException` | not an alias |
 | `CsOpenAliasNoRecordException` | no `oa1:xmr` record, or DNSSEC proved there is no TXT record |
-| `CsOpenAliasAmbiguousException` | several addresses or conflicting records |
-| `CsOpenAliasInvalidRecordException` | malformed record, duplicate or unsupported field, limit exceeded, or address rejected |
+| `CsOpenAliasInvalidRecordException` | malformed or non-UTF-8 record, duplicate or unsupported field, oversized record, several addresses or conflicting records, or address rejected |
 | `CsOpenAliasDnssecException` | not secure; `status` is `insecure`, `bogus` or `indeterminate` |
-| `CsOpenAliasDnsException` | error rcode, CNAME loop or chain, mismatched question, malformed or oversized response |
-| `CsOpenAliasNetworkException` | connection, proxy, TLS or HTTP failure, validator unavailable; `timeout` is set when a deadline passed |
+| `CsOpenAliasNetworkException` | connection, proxy, TLS or HTTP failure, error rcode, CNAME loop, chain or conflict, mismatched question, malformed or oversized response, validator unavailable, or an oversized answer; `timeout` is set when a deadline passed |
 | `CsOpenAliasCancelledException` | the lookup was cancelled |
 
 Errors thrown by `isValidAddress` propagate unchanged.

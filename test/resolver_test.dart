@@ -124,7 +124,7 @@ void main() {
           'oa1:xmr recipient_address=valid;',
           'oa1:xmr recipient_address=second;',
         ],
-        isA<CsOpenAliasAmbiguousException>(),
+        isA<CsOpenAliasInvalidRecordException>(),
         isA<oa.OpenAliasAmbiguousException>(),
       ),
       (
@@ -133,7 +133,7 @@ void main() {
           'oa1:xmr recipient_address=valid; recipient_name=A;',
           'oa1:xmr recipient_address=valid; recipient_name=B;',
         ],
-        isA<CsOpenAliasAmbiguousException>(),
+        isA<CsOpenAliasInvalidRecordException>(),
         isA<oa.OpenAliasAmbiguousException>(),
       ),
       (
@@ -264,8 +264,16 @@ void main() {
         DnssecQuestionMismatchException('question'),
         DnssecResponseTooLargeException('large'),
         DnssecMalformedResponseException('malformed'),
+        DnssecUnavailableException('no validator'),
       ])
-        (error, isA<CsOpenAliasDnsException>()),
+        (
+          error,
+          isA<CsOpenAliasNetworkException>().having(
+            (error) => error.timeout,
+            'timeout',
+            isNull,
+          ),
+        ),
       (
         DnssecValidationException('bogus', status: DnssecStatus.bogus),
         isA<CsOpenAliasDnssecException>().having(
@@ -283,14 +291,6 @@ void main() {
           (error) => error.timeout,
           'timeout',
           const Duration(seconds: 20),
-        ),
-      ),
-      (
-        const DnssecUnavailableException('no validator'),
-        isA<CsOpenAliasNetworkException>().having(
-          (error) => error.timeout,
-          'timeout',
-          isNull,
         ),
       ),
       (
@@ -327,9 +327,6 @@ void main() {
         DohMalformedResponseException('content type'),
         DohResponseTooLargeException('large', limitBytes: 65535),
         DohQuestionMismatchException('question'),
-      ])
-        (error, isA<CsOpenAliasDnsException>()),
-      for (final error in const <DohTransportException>[
         DohHttpStatusException('status', statusCode: 503),
         DohConnectionException('refused'),
         DohQueueFullException('full', maxQueuedRequests: 64),

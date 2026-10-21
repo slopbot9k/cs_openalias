@@ -32,10 +32,9 @@ Future<void> main(List<String> args) async {
 String _describe(CsOpenAliasException error) => switch (error) {
   CsOpenAliasInvalidAliasException() => 'Not an OpenAlias name',
   CsOpenAliasNoRecordException() => 'No Monero address is published there',
-  CsOpenAliasAmbiguousException() => 'More than one address is published',
-  CsOpenAliasInvalidRecordException() => 'The published record is unusable',
+  CsOpenAliasInvalidRecordException() =>
+    'The published records do not name one usable address',
   CsOpenAliasDnssecException() => 'The answer is not signed with DNSSEC',
-  CsOpenAliasDnsException() => 'The DNS lookup failed',
-  CsOpenAliasNetworkException() => 'The resolver could not be reached',
+  CsOpenAliasNetworkException() => 'The DNS lookup failed',
   CsOpenAliasCancelledException() => 'Cancelled',
 };
