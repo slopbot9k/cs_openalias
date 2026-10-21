@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:dnssec_resolver/dnssec_resolver.dart';
 import 'package:doh_transport/doh_transport.dart';
@@ -138,19 +137,6 @@ CsOpenAliasOperation<CsOpenAliasRecipient> startOpenAliasLookup(
   });
 }
 
-final _xmrPrefix = ascii.encode('oa1:$_application');
-
-bool _isXmrRecord(List<int> bytes) {
-  final length = _xmrPrefix.length;
-  if (bytes.length < length) return false;
-  for (var i = 0; i < length; i++) {
-    if (bytes[i] != _xmrPrefix[i]) return false;
-  }
-  return bytes.length == length ||
-      bytes[length] == 0x20 ||
-      bytes[length] == 0x09;
-}
-
 CsOpenAliasRecipient _recipient(
   String domain,
   DnssecResult answer,
@@ -163,7 +149,6 @@ CsOpenAliasRecipient _recipient(
     );
   }
   final txt = answer.secureTxt();
-  final records = <String>[];
   for (final record in txt) {
     if (record.name != answer.canonicalName) {
       throw CsOpenAliasDnsException(
@@ -171,21 +156,10 @@ CsOpenAliasRecipient _recipient(
         alias: domain,
       );
     }
-    if (!_isXmrRecord(record.bytes)) continue;
-    try {
-      records.add(utf8.decode(record.bytes));
-    } on FormatException catch (error, stack) {
-      throw CsOpenAliasInvalidRecordException(
-        'OpenAlias record is not UTF-8',
-        alias: domain,
-        cause: error,
-        causeStackTrace: stack,
-      );
-    }
   }
   final selected = oa.selectOpenAliasRecipient(
     domain: domain,
-    records: records,
+    records: [for (final record in txt) record.bytes],
     application: _application,
     validateAddress: isValidAddress,
   );

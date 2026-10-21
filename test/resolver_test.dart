@@ -115,7 +115,7 @@ void main() {
           isA<CsOpenAliasInvalidRecordException>().having(
             (error) => error.cause,
             'cause',
-            isA<FormatException>(),
+            isA<oa.OpenAliasInvalidRecordException>(),
           ),
         ),
       );
