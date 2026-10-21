@@ -16,7 +16,8 @@ final lookup = resolveOpenAlias(
       ? const CsOpenAliasProxy(address: '127.0.0.1', port: 9050)
       : null,
 );
-// Call lookup.cancel() if the user leaves or the network settings change.
+// lookup.cancel() stops further queries and closes the connection early;
+// the alias may already have been sent in the first query.
 try {
   final recipient = await lookup.result;
   print(recipient.address);
@@ -44,11 +45,16 @@ name.
 - Deadlines: connect 5 s, request 12 s, whole lookup 20 s; through a proxy
   10 s, 20 s and 40 s. At most 64 queries per lookup, validated from the IANA
   root keys.
-- Only a DNSSEC-secure TXT answer for the alias is used. Of its `oa1:xmr`
-  records exactly one recipient address must remain, and it must pass
-  `isValidAddress`. `tx_payment_id` is rejected. `recipient_name` and
+- Only a DNSSEC-secure TXT answer for the alias is used. Other records are
+  ignored without being decoded. Of its `oa1:xmr` records exactly one
+  recipient address must remain, and it must pass `isValidAddress`. A
+  non-empty `tx_payment_id` is rejected. `recipient_name` and
   `tx_description` are untrusted display text; `checksum` and
   `address_signature` are not verified.
+- A package re-validates what crosses a public port whose implementation the
+  caller supplies; it does not re-check what a private seam or a known sibling
+  package already guarantees. cs_openalias repeats none of its constituents'
+  checks.
 - The resolver sees every query and, without a proxy, your IP address.
 
 ## Errors
