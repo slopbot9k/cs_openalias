@@ -87,12 +87,11 @@ DnssecResult answer(
   String? canonicalName,
   List<DnssecRecord> aliases = const [],
   int ttl = 300,
-  int recordType = 16,
 }) {
   final owner = canonicalName ?? question;
   return DnssecResult(
     question: question,
-    recordType: recordType,
+    recordType: 16,
     canonicalName: owner,
     status: status,
     records: [

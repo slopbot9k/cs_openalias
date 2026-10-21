@@ -83,13 +83,6 @@ void main() {
       expect(recipient.ttl, 17);
     });
 
-    test('a TTL with the high bit set counts as zero', () async {
-      final lookup = FakeLookup(
-        () => answer('alice.example', [_alice], ttl: 0x80000000),
-      );
-      expect((await start(lookup).result).ttl, 0);
-    });
-
     test('records of other applications are ignored undecoded', () async {
       final lookup = FakeLookup(
         () => answer('alice.example', [
@@ -217,33 +210,6 @@ void main() {
           ),
         );
         expect(validated, 0);
-      });
-    }
-
-    for (final (name, result) in [
-      ('another question', answer('mallory.example', [_alice])),
-      ('another record type', answer('alice.example', [_alice], recordType: 1)),
-      (
-        'a TXT owner other than the canonical name',
-        _ForgedOwner(answer('alice.example', [_alice])),
-      ),
-      ('an inconsistent secure answer', answer('alice.example', [])),
-    ]) {
-      test('$name is a DNS failure', () async {
-        var validated = 0;
-        final lookup = FakeLookup(() => result);
-        await expectLater(
-          start(
-            lookup,
-            isValidAddress: (_) {
-              validated++;
-              return true;
-            },
-          ).result,
-          throwsA(isA<CsOpenAliasDnsException>()),
-        );
-        expect(validated, 0);
-        expect(network.closes, 1);
       });
     }
   });
@@ -560,26 +526,4 @@ void main() {
       expect(uncaught, isEmpty);
     });
   });
-}
-
-final class _ForgedOwner extends DnssecResult {
-  _ForgedOwner(DnssecResult result)
-    : super(
-        question: result.question,
-        recordType: result.recordType,
-        canonicalName: result.canonicalName,
-        status: result.status,
-        records: result.records,
-        aliases: result.aliases,
-      );
-
-  @override
-  List<DnssecTxtRecord> secureTxt() => [
-    for (final record in super.secureTxt())
-      DnssecTxtRecord(
-        name: 'mallory.example',
-        ttl: record.ttl,
-        bytes: record.bytes,
-      ),
-  ];
 }

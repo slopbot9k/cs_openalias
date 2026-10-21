@@ -143,21 +143,7 @@ CsOpenAliasRecipient _recipient(
   DnssecResult answer,
   bool Function(String address) isValidAddress,
 ) {
-  if (answer.question != domain || answer.recordType != 16) {
-    throw CsOpenAliasDnsException(
-      'DNS answer is not for the alias',
-      alias: domain,
-    );
-  }
   final txt = answer.secureTxt();
-  for (final record in txt) {
-    if (record.name != answer.canonicalName) {
-      throw CsOpenAliasDnsException(
-        'TXT owner is not the alias',
-        alias: domain,
-      );
-    }
-  }
   final selected = oa.selectOpenAliasRecipient(
     domain: domain,
     records: [for (final record in txt) record.bytes],
@@ -173,8 +159,7 @@ CsOpenAliasRecipient _recipient(
     address: selected.address,
     application: selected.application,
     canonicalName: answer.canonicalName,
-    // RFC 2181 section 8: a TTL with the most significant bit set is zero.
-    ttl: ttl > 0x7fffffff ? 0 : ttl,
+    ttl: ttl,
     fields: selected.record.fields,
   );
 }

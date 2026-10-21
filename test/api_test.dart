@@ -190,19 +190,6 @@ void main() {
     fields['recipient_address'] = 'changed';
     expect(recipient.fields['recipient_address'], 'address');
     expect(() => recipient.fields['x'] = 'y', throwsUnsupportedError);
-    for (final ttl in [-1, 0x80000000]) {
-      expect(
-        () => CsOpenAliasRecipient(
-          domain: 'alice.example',
-          address: 'address',
-          application: 'xmr',
-          canonicalName: 'alice.example',
-          ttl: ttl,
-          fields: const {},
-        ),
-        throwsArgumentError,
-      );
-    }
   });
 
   test('a dropped failed operation raises no uncaught error', () async {

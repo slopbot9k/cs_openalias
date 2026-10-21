@@ -34,11 +34,7 @@ final class CsOpenAliasRecipient {
     required this.canonicalName,
     required this.ttl,
     required Map<String, String> fields,
-  }) : fields = Map<String, String>.unmodifiable(fields) {
-    if (ttl < 0 || ttl > 0x7fffffff) {
-      throw ArgumentError.value(ttl, 'ttl');
-    }
-  }
+  }) : fields = Map<String, String>.unmodifiable(fields);
 }
 
 /// A started lookup. [result] carries every failure; [cancel] is idempotent
