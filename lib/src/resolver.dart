@@ -150,16 +150,9 @@ CsOpenAliasRecipient _recipient(
     application: _application,
     validateAddress: isValidAddress,
   );
-  final ttl = [
-    for (final record in txt) record.ttl,
-    for (final alias in answer.aliases) alias.ttl,
-  ].reduce((a, b) => a < b ? a : b);
   return CsOpenAliasRecipient(
     domain: domain,
     address: selected.address,
-    application: selected.application,
-    canonicalName: answer.canonicalName,
-    ttl: ttl,
     fields: selected.record.fields,
   );
 }

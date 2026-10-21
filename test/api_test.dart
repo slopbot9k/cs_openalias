@@ -182,9 +182,6 @@ void main() {
     final recipient = CsOpenAliasRecipient(
       domain: 'alice.example',
       address: 'address',
-      application: 'xmr',
-      canonicalName: 'alice.example',
-      ttl: 300,
       fields: fields,
     );
     fields['recipient_address'] = 'changed';

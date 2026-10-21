@@ -37,9 +37,6 @@ void main() {
 
       expect(recipient.domain, 'alice.example');
       expect(recipient.address, 'valid');
-      expect(recipient.application, 'xmr');
-      expect(recipient.canonicalName, 'alice.example');
-      expect(recipient.ttl, 300);
       expect(recipient.fields, {
         'recipient_address': 'valid',
         'recipient_name': 'Alice',
@@ -61,7 +58,7 @@ void main() {
       expect(network.closes, 1);
     });
 
-    test('the smallest TTL in the CNAME chain bounds caching', () async {
+    test('a CNAME answer is the recipient of the alias', () async {
       final lookup = FakeLookup(
         () => answer(
           'alias.example',
@@ -79,8 +76,7 @@ void main() {
       );
       final recipient = await start(lookup, alias: 'alias.example').result;
       expect(recipient.domain, 'alias.example');
-      expect(recipient.canonicalName, 'bob.other.example');
-      expect(recipient.ttl, 17);
+      expect(recipient.address, 'valid');
     });
 
     test('records of other applications are ignored undecoded', () async {

@@ -16,7 +16,6 @@ void main() {
     final recipient = await resolve('donate@getmonero.org');
     expect(recipient.domain, 'donate.getmonero.org');
     expect(recipient.address, isNotEmpty);
-    expect(recipient.application, 'xmr');
   }, skip: skip);
 
   test('a name under a nonexistent TLD has no record', () async {

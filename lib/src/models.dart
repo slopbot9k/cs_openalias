@@ -15,13 +15,6 @@ final class CsOpenAliasRecipient {
   /// The normalised alias that was looked up.
   final String domain;
   final String address;
-  final String application;
-
-  /// The owner of the TXT records after following CNAMEs.
-  final String canonicalName;
-
-  /// Seconds the answer may be cached: the smallest TTL in the answer chain.
-  final int ttl;
 
   /// Every field of the record. `recipient_name` and `tx_description` are
   /// untrusted display text.
@@ -30,9 +23,6 @@ final class CsOpenAliasRecipient {
   CsOpenAliasRecipient({
     required this.domain,
     required this.address,
-    required this.application,
-    required this.canonicalName,
-    required this.ttl,
     required Map<String, String> fields,
   }) : fields = Map<String, String>.unmodifiable(fields);
 }

@@ -80,7 +80,6 @@ final class FixtureServer {
 
   /// Replaces the fixture answer for every request when set.
   Future<void> Function(HttpRequest request)? respond;
-  int age = 0;
 
   FixtureServer._(this._server, this.fixtures) {
     _server.listen(_handle);
@@ -106,7 +105,6 @@ final class FixtureServer {
     if (respond != null) return respond(request);
     request.response
       ..headers.contentType = ContentType('application', 'dns-message')
-      ..headers.set(HttpHeaders.ageHeader, '$age')
       ..add(fixtures.reply(query));
     await request.response.close();
   }
