@@ -33,10 +33,11 @@ else, so it also tells whether input is an alias at all.
 
 - Queries go to `https://dns.google/dns-query` at `8.8.8.8`, so no local DNS
   lookup happens; TLS still verifies `dns.google`. Queries are padded.
-- Without `proxy` the lookup connects directly. With it, the lookup connects
-  only through that SOCKS5 proxy, using fresh isolation credentials, and never
-  falls back to a direct connection. The proxy address must be a numeric IP;
-  otherwise `resolveOpenAlias` throws `ArgumentError`.
+- `proxy` is required; with `null` the lookup connects directly. With a
+  proxy, the lookup connects only through that SOCKS5 proxy, using fresh
+  isolation credentials, and never falls back to a direct connection. The
+  proxy address must be a numeric IP; otherwise `resolveOpenAlias` throws
+  `ArgumentError`.
 - Each lookup owns one transport, reuses its connections and closes it once
   when the lookup succeeds, fails or is cancelled. `cancel` stops the DNSSEC
   lookup and every request in flight.

@@ -9,6 +9,7 @@ void main() {
   Future<CsOpenAliasRecipient> resolve(String alias) => resolveOpenAlias(
     alias,
     isValidAddress: (address) => address.isNotEmpty,
+    proxy: null,
   ).result;
 
   test('a signed alias resolves through dns.google', () async {

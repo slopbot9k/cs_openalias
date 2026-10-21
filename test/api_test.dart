@@ -8,7 +8,7 @@ typedef _Resolve =
     CsOpenAliasOperation<CsOpenAliasRecipient> Function(
       String alias, {
       required bool Function(String address) isValidAddress,
-      CsOpenAliasProxy? proxy,
+      required CsOpenAliasProxy? proxy,
     });
 
 // Fails to compile when a leaf is added or removed.
@@ -66,6 +66,7 @@ void main() {
     final operation = resolveOpenAlias(
       'not-a-domain',
       isValidAddress: (_) => true,
+      proxy: null,
     );
     await expectLater(
       operation.result,

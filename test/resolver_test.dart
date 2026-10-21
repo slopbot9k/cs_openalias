@@ -457,6 +457,7 @@ void main() {
         () => startOpenAliasLookup(
           'alice.example',
           isValidAddress: (_) => true,
+          proxy: null,
           openTransport: network.open,
           lookup: (_, _, _) => throw ArgumentError('bad configuration'),
         ),

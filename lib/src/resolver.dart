@@ -26,17 +26,18 @@ String normalizeOpenAlias(String input) {
 }
 
 /// Looks up [alias] over DNS over HTTPS, validates the answer with DNSSEC on
-/// the device and returns the recipient of its one `oa1:xmr` record.
+/// the device and returns exactly one recipient address among its `oa1:xmr`
+/// records.
 ///
-/// Without [proxy] the lookup connects directly to the resolver; with it,
-/// only through the proxy. A non-numeric proxy address or an invalid port
-/// throws [ArgumentError]. Every other failure is a [CsOpenAliasException]
-/// from the operation's result, and errors thrown by [isValidAddress]
-/// propagate unchanged.
+/// With a null [proxy] the lookup connects directly to the resolver;
+/// otherwise only through the proxy. A non-numeric proxy address or an
+/// invalid port throws [ArgumentError]. Every other failure is a
+/// [CsOpenAliasException] from the operation's result, and errors thrown by
+/// [isValidAddress] propagate.
 CsOpenAliasOperation<CsOpenAliasRecipient> resolveOpenAlias(
   String alias, {
   required bool Function(String address) isValidAddress,
-  CsOpenAliasProxy? proxy,
+  required CsOpenAliasProxy? proxy,
 }) => startOpenAliasLookup(alias, isValidAddress: isValidAddress, proxy: proxy);
 
 /// Starts a DNSSEC lookup for [domain] over [port].
@@ -63,7 +64,7 @@ DnssecOperation<DnssecResult> dnssecLookup(
 CsOpenAliasOperation<CsOpenAliasRecipient> startOpenAliasLookup(
   String alias, {
   required bool Function(String address) isValidAddress,
-  CsOpenAliasProxy? proxy,
+  required CsOpenAliasProxy? proxy,
   LookupTransportFactory openTransport = openDohTransport,
   SecureLookup lookup = dnssecLookup,
 }) {
