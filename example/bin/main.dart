@@ -12,12 +12,21 @@ Future<void> main(List<String> args) async {
     exitCode = 64;
     return;
   }
-  final operation = resolveOpenAlias(
-    args[0],
-    // A wallet checks that the address is valid for its network here.
-    isValidAddress: (address) => address.isNotEmpty,
-    proxy: port == null ? null : CsOpenAliasProxy(address: args[1], port: port),
-  );
+  final CsOpenAliasOperation<CsOpenAliasRecipient> operation;
+  try {
+    operation = resolveOpenAlias(
+      args[0],
+      // A wallet checks that the address is valid for its network here.
+      isValidAddress: (address) => address.isNotEmpty,
+      proxy: port == null
+          ? null
+          : CsOpenAliasProxy(address: args[1], port: port),
+    );
+  } on ArgumentError {
+    stderr.writeln(_usage);
+    exitCode = 64;
+    return;
+  }
   try {
     final recipient = await operation.result;
     print('${recipient.domain}: ${recipient.address}');
@@ -34,7 +43,7 @@ String _describe(CsOpenAliasException error) => switch (error) {
   CsOpenAliasNoRecordException() => 'No Monero address is published there',
   CsOpenAliasInvalidRecordException() =>
     'The published records do not name one usable address',
-  CsOpenAliasDnssecException() => 'The answer is not signed with DNSSEC',
+  CsOpenAliasDnssecException() => 'The answer did not validate with DNSSEC',
   CsOpenAliasNetworkException() => 'The DNS lookup failed',
   CsOpenAliasCancelledException() => 'Cancelled',
 };

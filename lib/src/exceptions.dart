@@ -1,4 +1,4 @@
-/// Every deliberately reported OpenAlias lookup failure.
+/// A lookup failure, reported through [CsOpenAliasOperation.result].
 ///
 /// [message] is a developer diagnostic. [alias] is the alias the lookup was
 /// for: the normalised domain when normalisation succeeded, otherwise the raw
@@ -50,6 +50,7 @@ final class CsOpenAliasInvalidRecordException extends CsOpenAliasException {
   });
 }
 
+/// The facade's own status set; omits `secure`, as a secure answer never fails.
 enum CsOpenAliasDnssecStatus { insecure, bogus, indeterminate }
 
 /// DNSSEC validation did not establish a secure answer.

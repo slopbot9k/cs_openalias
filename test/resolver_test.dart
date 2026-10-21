@@ -231,7 +231,7 @@ void main() {
 
     test('a mapped failure carries the normalised alias', () async {
       final lookup = FakeLookup(
-        () => Future.error(const DnssecNoRecordsException('nx'), stack),
+        () => Future.error(const DnssecNoRecordException('nx'), stack),
       );
       await expectLater(
         start(lookup, alias: ' Alice@Example. ').result,
@@ -251,7 +251,7 @@ void main() {
     });
     for (final (error, matcher) in <(DnssecException, Matcher)>[
       (
-        const DnssecNoRecordsException('nx'),
+        const DnssecNoRecordException('nx'),
         isA<CsOpenAliasNoRecordException>(),
       ),
       (

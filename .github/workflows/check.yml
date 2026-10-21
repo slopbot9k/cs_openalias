@@ -21,17 +21,17 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: cypherstack/openalias
-          ref: fbcb56b9f399d61b52cc762412c538343e460923
+          ref: ae31390f433952d424c1d71db731bf482a572ee7
           path: openalias
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: cypherstack/dnssec_resolver
-          ref: e03de21083a819732efef323c62c1bc259fe17f5
+          ref: 05a103b73e6460492fc94203ab6b617cac1fbf11
           path: dnssec_resolver
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
           repository: cypherstack/doh_transport
-          ref: a6a5d8e8843c045ae4f18bee9e34ffde5d457910
+          ref: 05f499e24754771ba02328bc23ab9c93ee4f8641
           path: doh_transport
       - uses: dart-lang/setup-dart@6afc89df92d6eb3834022f73cd65adc8cdfcb92d
         with:

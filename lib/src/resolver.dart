@@ -227,7 +227,7 @@ CsOpenAliasException _fromDnssec(
       cause: error,
       causeStackTrace: stack,
     ),
-    DnssecNoRecordsException() => CsOpenAliasNoRecordException(
+    DnssecNoRecordException() => CsOpenAliasNoRecordException(
       message,
       alias: alias,
       cause: error,

@@ -28,16 +28,21 @@ final class CsOpenAliasRecipient {
   }) : fields = Map<String, String>.unmodifiable(fields);
 }
 
-/// A started lookup. [result] carries every failure; [cancel] is idempotent
-/// and ends the lookup with [CsOpenAliasCancelledException].
+/// A started request. Starting never throws: every failure completes [result]
+/// with a [CsOpenAliasException], and an unawaited [result] never raises an
+/// uncaught error.
 final class CsOpenAliasOperation<T> {
   final Future<T> result;
+
+  /// Fails an unfinished operation and releases its work. Repeated calls are
+  /// safe.
   final void Function() cancel;
 
   CsOpenAliasOperation(this.result, this.cancel) {
     result.ignore();
   }
 
+  /// The error is reported only to listeners of [result]; dropping it is safe.
   factory CsOpenAliasOperation.failed(CsOpenAliasException error) =>
       CsOpenAliasOperation(Future<T>.error(error), () {});
 }

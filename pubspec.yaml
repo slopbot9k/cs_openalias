@@ -1,7 +1,6 @@
 name: cs_openalias
 description: OpenAlias recipient lookups over DNS over HTTPS with on-device DNSSEC validation for Monero wallets.
 version: 0.0.1
-homepage: https://cypherstack.com/
 repository: https://github.com/cypherstack/cs_openalias
 environment:
   sdk: ">=3.10.0 <4.0.0"

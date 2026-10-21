@@ -73,16 +73,28 @@ users is the app's choice.
 | `CsOpenAliasNetworkException` | connection, proxy, TLS or HTTP failure, error rcode, CNAME loop, chain or conflict, mismatched question, malformed or oversized response, validator unavailable, or an oversized answer; `timeout` is set when a deadline passed |
 | `CsOpenAliasCancelledException` | the lookup was cancelled |
 
-Errors thrown by `isValidAddress` propagate unchanged.
+Errors thrown by `isValidAddress` propagate.
 
 ## Development
 
-Use Dart 3.10 or later and rustup with Rust 1.90.0; the DNSSEC build hook
-also needs the Rust target of the platform you build for.
+In the repository, with Dart 3.10 and rustup (Rust 1.90.0 and the target you
+build for), `dart tool/check.dart` runs format, analyze, the unit and
+integration tests and a publish dry run, `OPENALIAS_LIVE_TESTS=1` enables the
+live test against dns.google, `example/tool/generate_fixtures.sh` regenerates
+the integration fixtures from `DNSSEC_RESOLVER_DIR` (default
+`../../dnssec_resolver` from `example/`) and `example/bin/main.dart` performs
+one lookup.
 
-The constituent packages are not published yet. Clone `openalias`,
-`dnssec_resolver` and `doh_transport` beside this repository and add an
-untracked `pubspec_overrides.yaml` here:
+```sh
+dart tool/check.dart
+OPENALIAS_LIVE_TESTS=1 dart test test/live_test.dart
+example/tool/generate_fixtures.sh
+cd example && dart run bin/main.dart donate@getmonero.org
+```
+
+To develop against local checkouts of `openalias`, `dnssec_resolver` and
+`doh_transport`, clone them beside this repository and add an untracked
+`pubspec_overrides.yaml` here and in `example/`:
 
 ```yaml
 dependency_overrides:
@@ -94,20 +106,7 @@ dependency_overrides:
     path: ../doh_transport
 ```
 
-and the same in `example/` with `../../` paths.
-
-- `dart tool/check.dart` resolves dependencies, checks formatting and
-  analysis, runs the unit tests and the example's integration suite, and
-  performs a publish dry run.
-- `example/tool/generate_fixtures.sh` regenerates the integration fixtures
-  from a `dnssec_resolver` checkout (`DNSSEC_RESOLVER_DIR`, default
-  `../../dnssec_resolver` from `example/`).
-- `OPENALIAS_LIVE_TESTS=1 dart test test/live_test.dart` queries dns.google.
-- `dart run bin/main.dart donate@getmonero.org [<proxy ip> <proxy port>]` in
-  `example/` performs one lookup.
-
-`example/integration_test/support/LICENSE` covers the test support files
-copied from `doh_transport`.
+In `example/`, the paths start with `../../`.
 
 ## License
 
