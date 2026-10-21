@@ -143,38 +143,6 @@ void main() {
       const error = CsOpenAliasNoRecordException('m', alias: 'a.example');
       expect(error.toString(), 'CsOpenAliasNoRecordException: m');
     });
-
-    test('userMessage is the ready-to-show text of each leaf', () {
-      const a = 'alice.example';
-      final expected = <CsOpenAliasException, String>{
-        const CsOpenAliasInvalidAliasException('m', alias: a):
-            'Enter a valid address or OpenAlias.',
-        const CsOpenAliasNoRecordException('m', alias: a):
-            'No Monero OpenAlias record was found for alice.example.',
-        const CsOpenAliasAmbiguousException('m', alias: a):
-            'This alias has multiple Monero addresses. '
-            'Ask the recipient for an address.',
-        const CsOpenAliasInvalidRecordException('m', alias: a):
-            'This alias has an invalid or unsupported Monero record for '
-            'this wallet.',
-        const CsOpenAliasDnssecException(
-          'm',
-          alias: a,
-          status: CsOpenAliasDnssecStatus.bogus,
-        ): 'DNSSEC verification failed or is unavailable. '
-            'Ask the recipient for a verified alias or address.',
-        const CsOpenAliasDnsException('m', alias: a):
-            'The DNS lookup for alice.example failed. '
-            'No address was accepted.',
-        const CsOpenAliasNetworkException('m', alias: a):
-            'OpenAlias lookup failed. Check your connection and try again.',
-        const CsOpenAliasCancelledException('m', alias: a):
-            'OpenAlias lookup cancelled.',
-      };
-      expect(expected, hasLength(8));
-      expected.forEach((error, text) => expect(error.userMessage, text));
-      expect(openAliasLookupFailedTitle, 'OpenAlias lookup failed');
-    });
   });
 
   test('a recipient keeps an unmodifiable copy of its fields', () {

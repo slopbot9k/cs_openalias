@@ -218,13 +218,11 @@ void main() {
       await expectLater(
         operation.result,
         throwsA(
-          isA<CsOpenAliasInvalidAliasException>()
-              .having((e) => e.alias, 'alias', ' Not An Alias ')
-              .having(
-                (e) => e.userMessage,
-                'userMessage',
-                'Enter a valid address or OpenAlias.',
-              ),
+          isA<CsOpenAliasInvalidAliasException>().having(
+            (e) => e.alias,
+            'alias',
+            ' Not An Alias ',
+          ),
         ),
       );
     });
@@ -236,13 +234,11 @@ void main() {
       await expectLater(
         start(lookup, alias: ' Alice@Example. ').result,
         throwsA(
-          isA<CsOpenAliasNoRecordException>()
-              .having((e) => e.alias, 'alias', 'alice.example')
-              .having(
-                (e) => e.userMessage,
-                'userMessage',
-                'No Monero OpenAlias record was found for alice.example.',
-              ),
+          isA<CsOpenAliasNoRecordException>().having(
+            (e) => e.alias,
+            'alias',
+            'alice.example',
+          ),
         ),
       );
     });

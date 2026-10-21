@@ -21,7 +21,7 @@ try {
   final recipient = await lookup.result;
   print(recipient.address);
 } on CsOpenAliasException catch (error) {
-  showError(error.userMessage);
+  showError(describeForUser(error));
 }
 ```
 
@@ -55,8 +55,8 @@ else, so it also tells whether input is an alias at all.
 
 `result` fails with a leaf of the sealed `CsOpenAliasException`; `cause`
 keeps the underlying error and is never printed by `toString`. Each error
-carries the `alias` the lookup was for and a ready-to-show English
-`userMessage`; `openAliasLookupFailedTitle` is a matching dialog title.
+carries the `alias` the lookup was for and a developer `message`; wording for
+users is the app's choice.
 
 | Leaf | Meaning |
 | --- | --- |

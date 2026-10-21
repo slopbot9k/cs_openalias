@@ -1,12 +1,9 @@
-/// Title for a dialog that shows [CsOpenAliasException.userMessage].
-const String openAliasLookupFailedTitle = 'OpenAlias lookup failed';
-
 /// Every deliberately reported OpenAlias lookup failure.
 ///
-/// [message] is a developer diagnostic; show [userMessage] to the user.
-/// [alias] is the alias the lookup was for: the normalised domain when
-/// normalisation succeeded, otherwise the raw input. [cause] keeps the constituent package's error and is never printed by
-/// [toString].
+/// [message] is a developer diagnostic. [alias] is the alias the lookup was
+/// for: the normalised domain when normalisation succeeded, otherwise the raw
+/// input. [cause] keeps the constituent package's error and is never printed
+/// by [toString].
 sealed class CsOpenAliasException implements Exception {
   final String message;
   final String alias;
@@ -18,27 +15,6 @@ sealed class CsOpenAliasException implements Exception {
     this.cause,
     this.causeStackTrace,
   });
-
-  /// English text that is ready to show to the user.
-  String get userMessage => switch (this) {
-    CsOpenAliasInvalidAliasException() => 'Enter a valid address or OpenAlias.',
-    CsOpenAliasNoRecordException() =>
-      'No Monero OpenAlias record was found for $alias.',
-    CsOpenAliasAmbiguousException() =>
-      'This alias has multiple Monero addresses. '
-          'Ask the recipient for an address.',
-    CsOpenAliasInvalidRecordException() =>
-      'This alias has an invalid or unsupported Monero record for this '
-          'wallet.',
-    CsOpenAliasDnssecException() =>
-      'DNSSEC verification failed or is unavailable. '
-          'Ask the recipient for a verified alias or address.',
-    CsOpenAliasDnsException() =>
-      'The DNS lookup for $alias failed. No address was accepted.',
-    CsOpenAliasNetworkException() =>
-      'OpenAlias lookup failed. Check your connection and try again.',
-    CsOpenAliasCancelledException() => 'OpenAlias lookup cancelled.',
-  };
 
   @override
   String toString() => '$runtimeType: $message';
